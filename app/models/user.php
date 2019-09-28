@@ -101,11 +101,11 @@ class user
 		if ($image['size'] > 0) {
 
 				//Путь к папке с изображениями
-				$path = dirname(__DIR__, 2).'\public\\img\\';
-
+				$path = 'img/';
 				// Ищем текущее фото пользователя
 				$user_photo = $this->queryBuilder->selectOne('users', $id);
 				$user_photo = $user_photo['user_photo'];
+
 
 				//Если изображение аватара не стандартное, есть в директории и это файл, то удаляем его
 				if ($user_photo !== 'no-user.jpg' and file_exists($path.$user_photo) and is_file($path.$user_photo)) {
@@ -115,7 +115,8 @@ class user
 				//Сохраняем наш файл в пупку $path
 				$img = $this->manager->make($image['tmp_name']);
 				$photoName = md5(uniqid()).'.jpeg';
-				$img->save($path.$photoName);
+				$photoNameWithPath = $path.$photoName;
+				$img->save($photoNameWithPath);
 
 				//Сохраняем в сессию наше фото
 				$_SESSION['user_photo'] = $photoName;
