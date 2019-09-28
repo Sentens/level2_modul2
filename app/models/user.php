@@ -29,6 +29,8 @@ class user
 	private $queryFactory;
 	private $queryBuilder;
 	private $manager;
+	private $email;
+	private $username;
 
 	function __construct(pdo $pdo, Auth $Auth, SimpleMail $SimpleMail, QueryFactory $queryFactory, queryBuilder $queryBuilder, ImageManager $ImageManager)
 	{
@@ -235,6 +237,8 @@ class user
 	//Добавить нового пользователя
 	public function addUser($email, $password, $username)
 	{
+		$this->email = $email;
+		$this->username = $username;
 			try {
 
 					if (mb_strlen($password) < 5) {
@@ -247,19 +251,14 @@ class user
 
 
 				    $userId = $this->Auth->register($email, $password, $username, function ($selector, $token) {
-				    	//Получаем токен и селектор
-				        $message =  '<a href='.$_SERVER['SERVER_NAME'].'/verification/'.$selector.'/'.$token.'>Подтвердить</a>';
 
-				        //Отправляем токен и селектор на email для подтверждения
-					    $this->SimpleMail
-										->setTo('sentens@ukr.net', 'Alex')
-										->setFrom('test@mrln.com', 'Mrln')
-										->setSubject('test')
-										->setMessage($message)
-										->send();
-				    flash()->success(['Подтвердите вашу електронную почту!']);
-		    		header("Location: /login");
+				    	$email = $this->email;
+						$username = $this->username;
+						
+						//Отправляем сообщение
+					    $this->SendMail($email, $username, $selector, $token);
 				    });
+				    	
 			}
 
 			catch (VerySmallPassword $e) {
@@ -302,6 +301,23 @@ class user
 			    die();
 			}
 	}
+
+	public function SendMail($email, $username, $selector, $token){
+				    	//Получаем токен и селектор
+        $message =  $_SERVER['SERVER_NAME'].'/verification/'.$selector.'/'.$token;
+
+        //Отправляем токен и селектор на email для подтверждения
+	    $this->SimpleMail
+						->setTo($email, $username)
+						->setFrom('Verification@mrln.com', 'MarlinVerification')
+						->setSubject('Подтвердите вашу ел.почту')
+						->setMessage($message)
+						->send();
+	    flash()->success(['Подтвердите вашу електронную почту!']);
+		header("Location: /login");
+	    
+	}
+
 
 	//Подтвердить електронную почту пользователя
 	public function Verification($selector, $token)
